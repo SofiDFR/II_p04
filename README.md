@@ -1,7 +1,7 @@
 # II P04
 ## Ejercicio 1
 
-El **cubo** tiene un script para que el usuario lo pueda mover llamado `Move.cs`. Utiliza los mismos conceptos que la práctiva anterior
+#### El **cubo** tiene un script para que el usuario lo pueda mover llamado `Move.cs`. Utiliza los mismos conceptos que la práctiva anterior
 
 ***Nota:*** El cubo es un objeto físico (contiene `Rigidbody` y `Collider`)
 
@@ -32,11 +32,14 @@ El **cubo** tiene un script para que el usuario lo pueda mover llamado `Move.cs`
     }
 ```
 
-El **cilindro** contiene el script `CyllinderCollider.cs`. El cual utiliza el `patrón obervador`
+#### El **cilindro** contiene el script `CyllinderCollider.cs`. El cual utiliza el `patrón obervador`
 * El **Patrón Obervador funciona de la siguiente manera**:
+  
   1. Se define el delegado y evento
+     
     * El **delegado** actua como la estructura para los métodos que reaccionarán ante ciertos eventos. En este caso, el delegado `CubeCollidedWithSphere` representará los métodos cuando el cubo colisione con el cilindro.
     * El **evento estático de tipo de delegado** es declarado para que cualquier clase pueda suscribirse a este evento
+      
   2. Cuando ocurre una colisión (en este caso entre el cubo y el cilindro), se invoca al evento, notificando a todos los suscriptores que ha ocurrido la colisión
   3. Otras clases se suscriben al evento con `+=` en `OnEnable()` y desuscriben con `-=` en `OnDisable()`. Así las esferas escuchan el evento y reaccionan cuando ocurra
   4. Cuando el evento se dispara, los suscriptores (en este caso las esferas) reaccionan ejecutándo un método
@@ -55,7 +58,8 @@ public class CollisionNotifier : MonoBehaviour
     } 
 }
 ```
-Las esferas de tipo 1 y tipo 2 tienen sus controladores `Spherecontroller1.cs` y `SphereController2.cs` respectivamente
+#### Las esferas de tipo 1 y tipo 2 tienen sus controladores `Spherecontroller1.cs` y `SphereController2.cs` respectivamente
+
 ***Nota:*** Ambos scripts son iguales exeptuando el nombre de la función que llama a `MoveTowards` y el nombre del objeto al que se dirigen
 
 ```cs
@@ -68,6 +72,7 @@ Las esferas de tipo 1 y tipo 2 tienen sus controladores `Spherecontroller1.cs` y
         goTowards = GetComponent<GoTowards>();
     }
 ```
+
 Aquí simplemente creamos los atribudos para establecer el objetivo (`target`) y el `GoTowards`. En el Start() se recupera ese componente, el cual es otro script
 
 ```cs
@@ -81,6 +86,7 @@ Aquí simplemente creamos los atribudos para establecer el objetivo (`target`) y
         CyllinderCollider.OnCubeCollisionWithSphere -= GoToSphere;
     }
 ```
+
 Esto es para el `el paso 3` del **patrón obervador**, la suscripción
 
 ```cs
@@ -92,9 +98,10 @@ Esto es para el `el paso 3` del **patrón obervador**, la suscripción
         }
     }
 ```
-. . . 
 
-Todas las esferas contienen el script `MoveTowards`, que simplemente aplica la lógica de movimeinto
+Se etsablece el `target` para que las esferas sepan hacian dónde moverse
+
+#### Todas las esferas contienen el script `MoveTowards`, que simplemente aplica la lógica de movimeinto
 
 ```cs
     void Start()

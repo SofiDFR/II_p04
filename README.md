@@ -146,16 +146,16 @@ Ahora tenemos una escena con `arañas` y `huevos`
 - Los `huevos verdes` son de **tipo 1** (a la que se acercan equivale al cilindro)
 - Los `arañas rojos` son de **tipo 2**
 
-![ej 2](p04_002.gif)
+![ej 2](docs/p04_002.gif)
 
 ## Ejercicio 3
 ## Ejercicio 4
 ## Ejercicio 5
-![ej 5](p04_005.gif)
+![ej 5](docs/p04_005.gif)
 ## Ejercicio 6
-![ej 6](p04_006.gif)
+![ej 6](docs/p04_006.gif)
 ## Ejercicio 7
-![ej 7](p04_007.gif)
+![ej 7](docs/p04_007.gif)
 ## Ejercicio 8
 ## Ejercicio 9
-El ccubo ya era un objeto físico
+El cubo ya era un objeto físico

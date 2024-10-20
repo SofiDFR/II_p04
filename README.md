@@ -140,6 +140,14 @@ También incluye un `setter` y un `getter`
 ![ej 1](docs/p04_001.gif)
 
 ## Ejercicio 2
+Ahora tenemos una escena con `arañas` y `huevos`
+- Las `arañas verdes` son de **tipo 1** (equivalente a esferas de tipo 1)
+- Las `arañas rojas` son de **tipo 2** (equivalente a esferas de tipo 2)
+- Los `huevos verdes` son de **tipo 1** (a la que se acercan equivale al cilindro)
+- Los `arañas rojos` son de **tipo 2**
+
+![ej 2](p04_002.gif)
+
 ## Ejercicio 3
 ## Ejercicio 4
 ## Ejercicio 5

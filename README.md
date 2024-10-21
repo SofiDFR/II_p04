@@ -291,6 +291,15 @@ Y se cambia su posición al objeto seleccionado
 ```
 ![ej 4](docs/p04_004.gif)
 ## Ejercicio 5
+Primero tendremos un objeto vacío `Points Manager`, que manejará el recuento de puntos
+***Nota:*** Se usará el patrón `Singleton`: Este asegura que una clase tenga una única instancia en todo el programa y que se pueda acceder a esa instancia globalmente.
+1. Se define la variable estática
+```cs
+public static PointsManager instance;
+```
+
+2. Se inicializa la instancia en `Awake()`
+
 ![ej 5](docs/p04_005.gif)
 ![points](docs/points.PNG)
 ## Ejercicio 6

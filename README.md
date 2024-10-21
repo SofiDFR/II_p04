@@ -470,8 +470,8 @@ Tras mostrar el mensaje, se llama a `Invoke` para llamar a otro método con retr
 ![ej 7](docs/p04_007.gif)
 
 ## Ejercicio 8
-1. Se creó un escenario básico con `Blender` y se importó en `Unity`
-2. Se creó al personaje de primera persona
+### Se creó un escenario básico con `Blender` y se importó en `Unity`
+### Se creó al personaje de primera persona
    1. En un `objeto vacío` se puso un `character controller`
    2. Y como hijos se pusieron una `cámara` (se eliminó la principal) y un `cilindro` que actúa como cuerpo y referencia para las dimensiones del personaje.
    3. Al personaje se le añadió el siguiente scrpit: `PlayerMovement`
@@ -518,11 +518,113 @@ Tras mostrar el mensaje, se llama a `Invoke` para llamar a otro método con retr
    3. Se capturan las entradas del jugador y se calcula el movimiento (alineado con la dirección en la que mira el jugador)
    4. Se aplica el movimiento
    5. Se aplica la gravedad. Aumenta la velocidad de caída en cada frame. Cuanto más caiga, más rápido cae (simula la aceleración por gravedad)
-      $$
-      \text{Nueva velocidad vertical} = \text{Velocidad actual} + (-9.81 \, \text{m/s}^2) \cdot \text{deltaTime}
-      $$
-Para el movimeinto de la cámara:
+      
+      $`\text{Nueva velocidad vertical} = \text{Velocidad actual} + (-9.81 \, \text{m/s}^2) \cdot \text{deltaTime}`$
+      
+Para el movimeinto de la cámara: `MouseLook`
 ```cs
-``` 
+    public float mouseSensitivity = 100f;
+    public Transform playerBody;
+    float xRotation = 0f;
+```
+* `xRotation`: Almacena la rotación acumulada en el eje X
+  
+```cs
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+```
+Bloquea el cursor en el centro de la pantalla, para que el cursor no se mueva fuera de la ventana del juego
+
+```cs
+    void Update()
+    {
+        float MouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float MouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+        xRotation -= MouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        playerBody.Rotate(Vector3.up * MouseX);
+    }
+```
+1. Captura la cantidad de movimiento del rarón en los ejes horizontales y verticales
+2. Se ajuste el ángulo de rotación vertical según el movimiento del ratón. Al mover el ratón hacia arriba, `MouseY` es positivo, lo que disminuye la rotación del eje X. Al moverlo hacia abajo ocurre exactamente lo contrario.
+3. Se restringe el valor de `XROtation` para evitar que la cámara gire demasiado hacia arriba o hacia abajo, limitando la vista del jugador.
+4. Se aplica la rotación a la cámara
+5. Se rota el transform del cuerpo del jugador
+
+### Se creó un sistema de recogida de monedas
+Esto funciona exactamente igual que el sistema de recogida de puntos con los huevos de las arañas de los ejercicio 5, 6 y 7.
+
+La única diferencia son los nombres de las variables y que las monedas valen 1 punto, es decir, se trata como unidad de moneda.
+
+Cada vez que se le da a jugar, se generan 10 monedas aleatorias a través del mapa:
+
+```cs
+void Start()
+{
+    coinPositions = new List<Vector3>();
+    DefineMapLimits();
+    GenerateCoins();
+}
+```
+Se definen los límites del amapa y luego se empiezan a generar monedas
+
+```cs
+void DefineMapLimits()
+{
+    BoxCollider boxCollider = map.GetComponent<BoxCollider>();
+    superiorLimit = map.transform.position + boxCollider.center + new Vector3(boxCollider.size.x, boxCollider.size.y, boxCollider.size.z) / 2;
+    inferiorLimit = map.transform.position + boxCollider.center - new Vector3(boxCollider.size.x, boxCollider.size.y, boxCollider.size.z) / 2;
+}
+```
+El mapa tiene un box collider, así que los límites de calculan sumando y restando la mitad del tamaño del `BoxCOllider`. Esto define los límites donde pueden aparecer las monedas
+
+```cs
+void GenerateCoins()
+{
+    for (int i = 0; i < coinAmount; i++)
+    {
+        Vector3 randomPosition;
+        bool validPosition = false;
+
+        int tries = 0;
+        do
+        {
+            randomPosition = GenerateRandomPosition();
+            tries++;
+
+            if (!Physics.CheckSphere(randomPosition, radioCheck, layerMask) && IsValidPos(randomPosition))
+            {
+                validPosition = true;
+            }
+            if (tries > 100)
+            {
+                Debug.Log("No se pudo generar la moneda");
+                break;
+            }
+        } while (!validPosition);
+
+        if (validPosition)
+        {
+            coinPositions.Add(randomPosition);
+            Instantiate(coinPrefab, randomPosition, Quaternion.identity);
+        }
+    }
+}
+```
+1. El bucle se ejecuta 10 veces para generar cada moneda
+2. Se genera una posición aleatoria dentro de los límites del mapa y se verifica si es válida
+   1. Para evitar superposiciones con otros objetos, se comprueba si hay algún objeto dentro de `radioCheck` alrededor de la posición generada
+   2. También se comprueba se las monedas están lo suficientemente alejadas unas de otras
+   3. Si después de más de 100 intentos no se puede generar, se sale del bucle (evita bucles infinitos)
+3. Si se encuentra una posición válida, se guarda en la lista y se instancia una moneda
+
+### Enemigo
+La intención era que hubiese un enemigo persiguiendo al jugador durante toda la partida, sin embargo, debido a la cantidad de obstáculos, no fue posible. El enemigo siempre intentaba escalar la pared (intentando llegar en línea recta). Mediante el uso del `patrón observador` se aumentaría la velocidad del enemigo a medida que se iban cogiendo más monedas, aumentando la dificultad del juego.
+
 ## Ejercicio 9
 El cubo ya era un objeto físico

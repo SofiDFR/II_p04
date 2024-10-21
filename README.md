@@ -298,14 +298,177 @@ Primero tendremos un objeto vacío `Points Manager`, que manejará el recuento d
 public static PointsManager instance;
 ```
 
-2. Se inicializa la instancia en `Awake()`
+2. Se inicializa la instancia en `Awake()`. Este método se ejecuta antes de cualquier otro, justo cuando se inicializa el objeto.
+   * Si `instance` es null: es la primera vez que se crea un objeto `PointsManager`, por lo que se asigna `this` (instancia actual del objeto) a la variable estática `inctance`. Así la variable estática ahora contiene una referencia a esta instancia.
+   * Si ya existe una instancia y la nueva creada no es la misma, se destruye el objeto duplicado. Esto asegura que solo haya una instancia en la escena.
+   * La función `DontDestroyOnLoad` evita que el objeto que contiene el script se destruya al cargar una nueva escena. Esto sirve para mantener la misma instancia del `PointsManager` durante todo el juego.
+  
+```cs
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+        DontDestroyOnLoad(gameObject);
+    }
+```
+* **Métodos de PointsManager**
+  * `AddPoints`: Suma los puntos
+  ```cs
+     public void AddPoints(int pointsToAdd)
+    {
+        points += pointsToAdd;
+        Debug.Log("Total Points: " + points);
+    }
+  ```
+  * `GetPoints`: Getter de los puntos
+
+Después tenemos la clase `Egg`, que contendrán todos los huevos.
+
+```cs
+    public void Collect()
+    {
+        PointsManager.instance.AddPoints(points);
+        Destroy(gameObject);
+        SpawnNewEgg();
+    }
+```
+
+Este método es lo que permite sumar la cantidad de puntos adecuada dependiendo del tipo de huevo. Se le asigna los puntos desde el inspector cuando el `cubo` colisiona con el `huevo` (se llama a `OnTriggerEnter` desde otro script wue contiene el cubo). Luego se destruye ese mismo huevo, indicando que ya se ha recogido y luego se crea un huevo nuevo en el mapa con la siguiente función:
+
+```cs
+    void SpawnNewEgg()
+    {
+        GameObject plane = GameObject.Find("Plane");
+        Vector3 planeSize = plane.GetComponent<Renderer>().bounds.size;
+        Vector3 planePosition = plane.transform.position;
+
+        Camera mainCamera = Camera.main;
+
+        Vector3 spawnPosition = Vector3.zero;
+        bool isPositionValid = false;
+        
+        while (!isPositionValid)
+        {
+            spawnPosition = new Vector3(Random.Range(planePosition.x - planeSize.x / 2, planePosition.x + planeSize.x / 2),
+                                        Random.Range(planePosition.y - planeSize.y / 2, planePosition.y + planeSize.y / 2),
+                                        Random.Range(planePosition.z - planeSize.z / 2, planePosition.z + planeSize.z / 2));
+            Vector3 screenPoint = mainCamera.WorldToScreenPoint(spawnPosition);
+            if (screenPoint.x >= 0 && screenPoint.x <= Screen.width && screenPoint.y >= 0 && screenPoint.y <= Screen.height)
+            {
+                isPositionValid = true;
+            }
+        }
+        Instantiate(eggPrefab, spawnPosition, Quaternion.identity);
+    }
+}
+```
+
+1. Primero se obtiene el tamaño y la posición del plano
+2. Se obtiene la referencia de la cámara principal (esto será para que no se generen huevos donde no se puedan ver)
+3. Dentro del bucle se genera una posición válida.
+   * El rango para cada eje se calcula a partir de la posición central del plano y su tamaño
+   * Se convierte `spawnPosition` a `coordenadas de pantalla` (pasa de posición 3D a 2D de pantalla)
+   * Se verifica si la posición generada es visible
+4. Se instancia el nuevo huevo
+
+Por último tendremos la clase `RecolectEgg`, que también usará el patrón `Singleton`
+
+```cs
+public static RecolectEgg instance;
+```
+
+```cs
+    void OnTriggerEnter(Collider other)
+    {
+        Egg egg = other.GetComponent<Egg>();
+        if (egg != null)
+        {
+            if (other.CompareTag("EggType1"))
+            {
+                Debug.Log("Recolected Egg Type 1 + " + egg.points);
+            }
+            else if (other.CompareTag("EggType2"))
+            {
+                Debug.Log("Recolected Egg Type 2 + " + egg.points);
+            }
+            egg.Collect();
+        }
+    }
+```
+Simplemente coge el componente `Egg` del obejto, comprueba con qué tipo de huevo ha chocado para imprimirlo por consola y se recolecta el propio huevo
 
 ![ej 5](docs/p04_005.gif)
 ![points](docs/points.PNG)
+
 ## Ejercicio 6
+Para esto primero se deberá crear un `Canva` y como hijo un `Text (TextMeshPro)`. Se ajusta el texto a lo que sería la pantalla.
+
+Ahora, en `RecolectEgg` se añade esta función y se llama al final del `OnTriggerEnter`, justo después de `egg.Collect()`
+```cs
+public TextMeshProUGUI pointsText;
+```
+```cs
+    void UpdatePointsUI()
+    {
+        pointsText.text = "Points: " + PointsManager.instance.GetPoints().ToString();
+    }
+```
 ![ej 6](docs/p04_006.gif)
+
 ## Ejercicio 7
+Primero, en el `Canva`, se creará otro hijo de tipo `Text` llamado `Reward Text` y como antes, se ajusta a la pantalla. 
+
+En `PointsManager`, mientras se añade puntos se hace una comprobación:
+```cs
+private int pointsForNextReward = 100;
+```
+```cs
+    public void AddPoints(int pointsToAdd)
+    {
+        // Lógica para sumar puntos
+        if (points >= pointsForNextReward)
+        {
+            GiveReward();
+            pointsForNextReward += 100;
+        }
+    }
+```
+Si la puntuación es mayor o igual a 100 (la primera vez), se le da una recompensa al usuario. La siguiente recompensa será a los 200 puntos. Y así sucesivamente.
+
+```cs
+    void GiveReward()
+    {
+        Debug.Log("Reward!");
+        RecolectEgg.instance.ShowRewardGUI("Reward!");
+    }
+```
+
+En caso de que existiera la recompensa, su lógica iría aquí.
+
+En `RecolectEgg`, se imprime el mensaje de recompensa por pantalla:
+```cs
+    public void ShowRewardGUI(string reward)
+    {
+        rewardText.text = reward;
+        rewardText.gameObject.SetActive(true);
+        Invoke("HideRewardGUI", 1f);
+    }
+
+    void HideRewardGUI()
+    {
+        rewardText.gameObject.SetActive(false);
+    }
+```
+Tras mostrar el mensaje, se llama a `Invoke` para llamar a otro método con retraso, en este caso se llama a `HideRewardGUI` 1 segundo después de que se llame a `ShowRewardGUI` para que el mensaje se oculte.
+
 ![ej 7](docs/p04_007.gif)
+
 ## Ejercicio 8
 ## Ejercicio 9
 El cubo ya era un objeto físico

@@ -149,9 +149,150 @@ Ahora tenemos una escena con `arañas` y `huevos`
 ![ej 2](docs/p04_002.gif)
 
 ## Ejercicio 3
+* **Cubo** colisiona con **Araña Tipo 2 (Roja)** -> **Araña Tipo 1 (Verde)** se dirige hacia el **Cofre del Tesoro**
+
+Para detectar que el cubo ha colisionado contra la araña del tipo dos, se urará el patrón obervador. E lscript del notificador irá en la araña de tipo 2.
+
+```cs
+public enum SpiderType
+{
+    Type1,
+    Type2
+}
+```
+Aquí definimos los tipos de arañas que pueden haber y se asigna en el inspector.
+
+```cs
+public class CollisionNotifier : MonoBehaviour
+{
+    public delegate void CubeCollidedWithSpider(SpiderType spiderType);
+    public static event CubeCollidedWithSpider OnCubeCollisionWithSpider;
+    public SpiderType spiderType;
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Cube"))
+        {
+            OnCubeCollisionWithSpider?.Invoke(spiderType);
+        }
+    } 
+}
+```
+El notificador es igual al anterior, simplemente se añade como parámetro el tipo de la araña para que el controlador de las `arañas de tipo 1` sepan hacia dónde dirigirse.
+
+El controlador de las arañas de tipo 1 también se suscriben y desuscriben al evento como se indicó antes. Veamos las funciones propias de este controlador:
+
+```cs
+CollisionNotifier.OnCubeCollisionWithSpider += HandleCubeCollisionWithSpider;
+```
+
+```cs
+    void HandleCubeCollisionWithSpider(SpiderType spiderType)
+    {
+        if (spiderType == SpiderType.Type1)
+        {
+            MoveTowardsNearestType2Egg();
+        }
+        else if (spiderType == SpiderType.Type2)
+        {
+            MoveTowardsSelectedObject();
+        }
+    }
+```
+
+Dependiendo del tipo de araña con el que ha colisionado el cubo, llamará a una función u otra.
+```cs
+    void MoveTowardsSelectedObject()
+    {
+        if (goTowards != null && selectedObject != null)
+        {
+            goTowards.SetTarget(selectedObject);
+        }
+    }
+```
+
+* **Cubo** colisiona con **Araña Tipo 1** -> **Araña Tipo 1** se dirige hacia el **Huevo Tipo 2** más cercano
+* 
+```cs
+    void MoveTowardsNearestType2Egg()
+    {
+        Transform nearestEgg = FindNearestEggOfType2();
+        if (goTowards != null && nearestEgg != null)
+        {
+            goTowards.SetTarget(nearestEgg);
+        }
+    }
+```
+* **Araña Tipo 1** cambia de color al colisionar con **Huevo Tipo 2**
+  
+```cs
+    void OnCollisionEnter(Collision collision)
+    {
+     // . . .    
+        if (collision.gameObject.tag == "EggType2" && spiderRenderer != null)
+        {
+            Color randomColor = new Color(Random.value, Random.value, Random.value, 1.0f);
+            spiderRenderer.material.color = randomColor;
+
+            spiderRenderer.enabled = false;
+            spiderRenderer.enabled = true;
+        }
+    }
+```
+AL detectar una colisión con un huevo de tipo 2, cambia el color del objeto a uno aleatorio y luego desactiva y reactiva el renderizador para forzar la actualización visual
+
+![ej 3](docs/p04_003.gif)
+
 ## Ejercicio 4
+Se han añadido dos `árboles` a la escena. El árbol de la derecha será el de referencia y el de la izquierda al que se teletransportarán las arañas de tipo 1 y orientarán las arañas de tipo 2.
+* **Detector de proximidad**
+```cs
+    public delegate void OnProximityEvent();
+    public static event OnProximityEvent OnProximity;
+```
+```cs
+    void Update()
+    {
+        float distance = Vector3.Distance(transform.position, referenceObj.position);
+
+        if (distance < distanceThreshold && !hasTeleported)
+        {
+            if (OnProximity != null)
+            {
+                OnProximity?.Invoke();
+                hasTeleported = true;
+            }
+        }
+        if (distance >= distanceThreshold)
+        {
+            ResetTeleport();
+        }
+    }
+```
+Esta vez se llama en el update, comprobando en cada frame la distancia hasta el objetivo.
+
+La variable `hasTeleported` simplemente indica que si se ha entrado en esa proximidad, que las arañas solo se teletransporten 1 vez. Solo vuelven a teletransportarse si se sale y vuelve a entrar
+
+* **Arañas de Tipo 1**
+
+En el controlador que ya tenían, ahora se suscriben a:
+```cs
+ProximityDetector.OnProximity += TeleportToObj;
+```
+
+Y se cambia su posición al objeto seleccionado
+```cs
+    void TeleportToObj()
+    {
+        if (teleportObj != null)
+        {
+            rb.MovePosition(teleportObj.position);
+        }
+    }
+```
+![ej 4](docs/p04_004.gif)
 ## Ejercicio 5
 ![ej 5](docs/p04_005.gif)
+![points](docs/points.PNG)
 ## Ejercicio 6
 ![ej 6](docs/p04_006.gif)
 ## Ejercicio 7

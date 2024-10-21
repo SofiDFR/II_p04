@@ -470,5 +470,59 @@ Tras mostrar el mensaje, se llama a `Invoke` para llamar a otro método con retr
 ![ej 7](docs/p04_007.gif)
 
 ## Ejercicio 8
+1. Se creó un escenario básico con `Blender` y se importó en `Unity`
+2. Se creó al personaje de primera persona
+   1. En un `objeto vacío` se puso un `character controller`
+   2. Y como hijos se pusieron una `cámara` (se eliminó la principal) y un `cilindro` que actúa como cuerpo y referencia para las dimensiones del personaje.
+   3. Al personaje se le añadió el siguiente scrpit: `PlayerMovement`
+   ```cs
+    public CharacterController controller;
+    public float speed = 7f;
+
+    private Vector3 velocity;
+    private float gravity = -9.81f;
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+    public LayerMask groundMask;
+    private bool isGrounded;
+   ```
+   * `gravity`: Es negativo para hacer que el jugador "caiga" hacia abajo
+   * `groundCheck`: Marca la posición desde la cual el código comprobará si el jugador está tocando el suelo
+   * `groundDistance`: Radio de esfera imaginaria que se usa para verificar si el jugador está cerca del suelo
+   * `groundMask`: define qué capa se considera suelo
+   * `isGrounded`: si el jugador está en el suelo o no
+     
+   ```cs
+    void Update()
+    {
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        Vector3 movement = transform.right * horizontal + transform.forward * vertical;
+
+        controller.Move(movement * speed * Time.deltaTime);
+
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+    }
+   ```
+   1. Se comprueba si el jugador está en el suelo (comprueba si la esfera invisible desde la posición `groundCheck` colisiona con objetos en la capa definida por `groundMask`. Si est así, devuelve true, si no, false;
+   2. Si el jugador está en el suelo y su velocidad vertical es negativa (está cayendo), se establece en `-2f` (no es 0 para evitar problemas con la detección del suelo). Asegura que el jugador esté pegado al suelo y no siga cayendo indefinidamente
+   3. Se capturan las entradas del jugador y se calcula el movimiento (alineado con la dirección en la que mira el jugador)
+   4. Se aplica el movimiento
+   5. Se aplica la gravedad. Aumenta la velocidad de caída en cada frame. Cuanto más caiga, más rápido cae (simula la aceleración por gravedad)
+      $$
+      \text{Nueva velocidad vertical} = \text{Velocidad actual} + (-9.81 \, \text{m/s}^2) \cdot \text{deltaTime}
+      $$
+Para el movimeinto de la cámara:
+```cs
+``` 
 ## Ejercicio 9
 El cubo ya era un objeto físico

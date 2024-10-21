@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SphereController1 : MonoBehaviour
+public class SphereController : MonoBehaviour
 {
     public Transform target;
     private GoTowards goTowards;
@@ -13,15 +13,15 @@ public class SphereController1 : MonoBehaviour
     }
     void OnEnable()
     {
-        CyllinderCollider.OnCubeCollisionWithSphere += GoToSphere;
+        CyllinderCollider.OnCubeCollisionWithSphere += GoToTarget;
     }
 
     void OnDisable()
     {
-        CyllinderCollider.OnCubeCollisionWithSphere -= GoToSphere;
+        CyllinderCollider.OnCubeCollisionWithSphere -= GoToTarget;
     }
 
-    void GoToSphere()
+    void GoToTarget()
     {
         if (goTowards != null && target != null)
         {

@@ -626,5 +626,7 @@ void GenerateCoins()
 ### Enemigo
 La intención era que hubiese un enemigo persiguiendo al jugador durante toda la partida, sin embargo, debido a la cantidad de obstáculos, no fue posible. El enemigo siempre intentaba escalar la pared (intentando llegar en línea recta). Mediante el uso del `patrón observador` se aumentaría la velocidad del enemigo a medida que se iban cogiendo más monedas, aumentando la dificultad del juego.
 
+![ej 8](docs/Movie_002(2)(1).gif)
+
 ## Ejercicio 9
 El cubo ya era un objeto físico
